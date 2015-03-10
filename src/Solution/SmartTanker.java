@@ -25,19 +25,16 @@ public class SmartTanker extends Tanker {
 
     int mode = EXPLORE;
 
-    MemMap map = new MemMap();
-    TaskSys ts = new TaskSys();
-    Driver driver = new Driver(map, ts);
+    MemMap map;
+    Driver driver;
 
     Cell current_cell;
-    MemPoint current_point = driver.getCurrentPoint();
-    TaskPair current_task_pair = new TaskPair();
+    MemPoint current_point;
     Task current_task;
+    MemPoint target_point;
 
-    MemPoint target_point = (MemPoint) MemPoint.FUEL_PUMP.clone();
-
-    int explore_count = -1;
-    MemPoint explore_target_point = (MemPoint) MemPoint.FUEL_PUMP.clone();
+    int explore_count;
+    MemPoint explore_target_point;
     MemPoint[] explore_target_point_list = {new MemPoint(19, 25),
                                             new MemPoint(38, 0),
                                             new MemPoint(19, -25),
@@ -56,11 +53,17 @@ public class SmartTanker extends Tanker {
                                             new MemPoint(-38,-38),                                            new MemPoint(0, 0),
                                             };
 
+    TaskSys ts = new TaskSys();
+    TaskPair current_task_pair = new TaskPair();
     Queue<TaskPair> plan_list = new LinkedList<TaskPair>();
-
     Status status = new Status();
 
-    public SmartTanker() {}
+    public SmartTanker(MemMap map, int explore_count) {
+        this.map = map;
+        this.explore_count = explore_count;
+        this.driver = new Driver(map, ts);
+        this.current_point = driver.getCurrentPoint();
+    }
 
     @Override
     public Action senseAndAct(Cell[][] view, long time_step) {

@@ -28,7 +28,7 @@ public class Simulator {
     private static int DELAY = 100;
 
 
-    private static int FLEET_SIZE = 3;
+    private static int FLEET_SIZE = 4;
 
 
     /**
@@ -45,11 +45,11 @@ public class Simulator {
 
         //Create a fleet
         Fleet fleet = new Fleet();
-
+        MemMap map = new MemMap();
         Tanker t;
 
         for (int i=0; i<FLEET_SIZE; i++) {
-            t = new SmartTanker();
+            t = new SmartTanker(map, i * 3);
             fleet.add(t);
         }
 
