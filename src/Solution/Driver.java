@@ -1,6 +1,6 @@
 package Solution;
 
-import Solution.Planner.Generator;
+import Solution.Planner.PlanGenerator;
 import Solution.Planner.TaskPair;
 import uk.ac.nott.cs.g54dia.multilibrary.Action;
 import uk.ac.nott.cs.g54dia.multilibrary.MoveAction;
@@ -64,9 +64,9 @@ public class Driver {
     public boolean plan(Queue<TaskPair> plan_list, Status status) {
         boolean new_plan = false;
         HashMap<Task, MemPoint> task_list = this.ts.scanTaskList();
-        if (this.prev_task_list_size < task_list.size()) {
+        if (this.prev_task_list_size != task_list.size()) {
             // more task append, re-plan
-            Generator generator = new Generator(this.map, this.current_point, status);
+            PlanGenerator generator = new PlanGenerator(this.map, this.current_point, status);
             generator.start(plan_list, task_list);
             new_plan = true;
         }

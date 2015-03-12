@@ -13,14 +13,14 @@ import java.util.Queue;
 /**
  * Created by JasonChen on 2/26/15.
  */
-public class Generator {
+public class PlanGenerator {
     final static int RETRY_MAX = 100;
 
     private MemMap map;
     private MemPoint current_point;
     private Status status;
 
-    public Generator(MemMap map, MemPoint current_point, Status status) {
+    public PlanGenerator(MemMap map, MemPoint current_point, Status status) {
         this.map = map;
         this.current_point = current_point;
         this.status = status;
@@ -48,8 +48,6 @@ public class Generator {
                 best_visit_list = s.getVisitList();
             }
         }
-
-        System.out.println("Generate: " + best_visit_list.size());
 
         plan_list.clear();
         for (TaskPair t : best_visit_list) {

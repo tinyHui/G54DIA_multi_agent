@@ -38,9 +38,9 @@ public class SmartTanker extends Tanker {
     MemPoint[] explore_target_point_list = {new MemPoint(19, 25),
                                             new MemPoint(38, 0),
                                             new MemPoint(19, -25),
-                                            new MemPoint(-19, 25),
-                                            new MemPoint(-38, 0),
                                             new MemPoint(-19, -25),
+                                            new MemPoint(-38, 0),
+                                            new MemPoint(-19, 25),
                                             new MemPoint(-25, 19),
                                             new MemPoint(0, 38),
                                             new MemPoint(25, 19),
@@ -48,19 +48,23 @@ public class SmartTanker extends Tanker {
                                             new MemPoint(0, -38),
                                             new MemPoint(-25, -19),
                                             new MemPoint(38,38),
+                                            new MemPoint(0, 0),
                                             new MemPoint(38,-38),
+                                            new MemPoint(0, 0),
                                             new MemPoint(-38,38),
-                                            new MemPoint(-38,-38),                                            new MemPoint(0, 0),
-                                            };
+                                            new MemPoint(0, 0),
+                                            new MemPoint(-38,-38),
+                                            new MemPoint(0, 0)};
 
-    TaskSys ts = new TaskSys();
+    TaskSys ts;
     TaskPair current_task_pair = new TaskPair();
     Queue<TaskPair> plan_list = new LinkedList<TaskPair>();
     Status status = new Status();
 
-    public SmartTanker(MemMap map, int explore_count) {
+    public SmartTanker(MemMap map, TaskSys ts, int id) {
         this.map = map;
-        this.explore_count = explore_count;
+        this.ts = ts;
+        this.explore_count = id * 3;
         this.driver = new Driver(map, ts);
         this.current_point = driver.getCurrentPoint();
     }
@@ -174,8 +178,6 @@ public class SmartTanker extends Tanker {
             if (this.current_task_pair.isNull()) {
                 // no plan occupied, try to read a new one
                 this.current_task_pair = this.plan_list.poll();
-                System.out.println("\tRemain: " + this.plan_list.size());
-                System.out.println("\t\ttarget: " + this.current_task_pair.p.x + ", " + this.current_task_pair.p.y);
             }
 
             if (!this.current_task_pair.isNull()) {
@@ -190,15 +192,12 @@ public class SmartTanker extends Tanker {
                         // not a task
                         this.current_task_pair = new TaskPair();
                         if (this.current_cell instanceof FuelPump) {
-                            System.out.println("\t\t\t" + "Refuel");
                             return REFUEL;
                         } else if(this.current_cell instanceof Well) {
-                            System.out.println("\t\t\t" + "Load");
                             return LOAD_WATER;
                         }
                     } else {
                         // is a task
-                        System.out.println("\t\t\t" + "Deliver");
                         this.current_task = this.current_task_pair.t;
                         this.current_task_pair = new TaskPair();
                         status.delivered_water += Math.min(this.current_task.getRequired(), status.water_level);

@@ -1,5 +1,6 @@
 package Solution;
 
+import Solution.Planner.Manager;
 import uk.ac.nott.cs.g54dia.multilibrary.*;
 
 /**
@@ -25,7 +26,7 @@ public class Simulator {
      * Time for which execution pauses so that GUI can update.
      * Reducing this value causes the simulation to run faster.
      */
-    private static int DELAY = 100;
+    private static int DELAY = 0;
 
 
     private static int FLEET_SIZE = 4;
@@ -46,10 +47,12 @@ public class Simulator {
         //Create a fleet
         Fleet fleet = new Fleet();
         MemMap map = new MemMap();
+        TaskSys ts = new TaskSys();
+        Manager manager = new Manager(map);
         Tanker t;
 
         for (int i=0; i<FLEET_SIZE; i++) {
-            t = new SmartTanker(map, i * 3);
+            t = new SmartTanker(map, ts, i);
             fleet.add(t);
         }
 
