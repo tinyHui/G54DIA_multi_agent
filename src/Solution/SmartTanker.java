@@ -1,5 +1,6 @@
 package Solution;
 
+import Solution.Planner.Manager;
 import Solution.Planner.TaskPair;
 import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 import uk.ac.nott.cs.g54dia.multilibrary.*;
@@ -23,18 +24,15 @@ public class SmartTanker extends Tanker {
             DRIVE_TO_PUMP = 4,
             DRIVE_TO_FACILITY = 5;
 
+    int id;
     int mode = EXPLORE;
 
+    Status status = new Status();
     MemMap map;
+    TaskSys task_sys;
+    Manager manager;
     Driver driver;
 
-    Cell current_cell;
-    MemPoint current_point;
-    Task current_task;
-    MemPoint target_point;
-
-    int explore_count;
-    MemPoint explore_target_point;
     MemPoint[] explore_target_point_list = {new MemPoint(19, 25),
                                             new MemPoint(38, 0),
                                             new MemPoint(19, -25),
@@ -49,31 +47,33 @@ public class SmartTanker extends Tanker {
                                             new MemPoint(-25, -19),
                                             new MemPoint(38,38),
                                             new MemPoint(0, 0),
+                                            new MemPoint(-38,-38),
+                                            new MemPoint(0, 0),
                                             new MemPoint(38,-38),
                                             new MemPoint(0, 0),
                                             new MemPoint(-38,38),
-                                            new MemPoint(0, 0),
-                                            new MemPoint(-38,-38),
                                             new MemPoint(0, 0)};
-
-    TaskSys ts;
+    Task current_task;
+    MemPoint target_point;
+    MemPoint explore_target_point;
+    int explore_count;
     TaskPair current_task_pair = new TaskPair();
     Queue<TaskPair> plan_list = new LinkedList<TaskPair>();
-    Status status = new Status();
 
-    public SmartTanker(MemMap map, TaskSys ts, int id) {
+    public SmartTanker(int id, MemMap map, TaskSys task_sys, Manager manager) {
+        this.id = id;
         this.map = map;
-        this.ts = ts;
+        this.task_sys = task_sys;
+        this.manager = manager;
+        this.driver = new Driver(map, task_sys);
         this.explore_count = id * 3;
-        this.driver = new Driver(map, ts);
-        this.current_point = driver.getCurrentPoint();
     }
 
     @Override
     public Action senseAndAct(Cell[][] view, long time_step) {
         Action act;
-        recordMap(view);
         updateState(view, time_step);
+        recordMap(view);
 
         this.mode = arbitrator();
 
@@ -101,40 +101,30 @@ public class SmartTanker extends Tanker {
     }
 
     private void updateState(Cell[][] view, long time_step) {
-        this.current_point = this.driver.getCurrentPoint();
-        this.current_cell = this.getCurrentCell(view);
-        status.water_level = this.getWaterLevel();
-        status.fuel_level = this.getFuelLevel();
-        status.completed_count = this.getCompletedCount();
-        status.time_remain = Status.DURATION - time_step;
-        if (this.map.well_list.size() > 0) {
-            // got well detected
-            boolean new_plan = this.driver.plan(this.plan_list, this.status);
-            if (new_plan) {
-                // plan updated, abort current target
-                this.current_task_pair = new TaskPair();
-            }
-        }
+        this.status.current_point = this.driver.getCurrentPoint();
+        this.status.current_cell = this.getCurrentCell(view);
+        this.status.completed_count = this.getCompletedCount();
+        this.status.time_remain = this.status.DURATION - time_step;
     }
 
     private boolean enoughFuel() {
-        int cost = this.current_point.calcDistance(this.target_point) +
+        int cost = this.status.current_point.calcDistance(this.target_point) +
                 this.target_point.calcDistanceToFuel();
 
-        return !(cost > status.fuel_level &&
-                !(this.current_cell instanceof FuelPump));
+        return !(cost > this.getFuelLevel() &&
+                !(this.status.current_cell instanceof FuelPump));
     }
 
     private void recordMap(Cell[][] view) {
         for (int y=-VIEW_RANGE; y < VIEW_RANGE; y++) {
             for (int x=-VIEW_RANGE; x < VIEW_RANGE; x++) {
-                int real_x = this.current_point.x + x;
-                int real_y = this.current_point.y - y;
+                int real_x = this.status.current_point.x + x;
+                int real_y = this.status.current_point.y - y;
                 MemPoint point = new MemPoint(real_x, real_y);
                 Cell cell = view[VIEW_RANGE + x][VIEW_RANGE + y];
                 if (point.calcDistanceToFuel() <= MAX_RANGE) {
                     if (cell instanceof Station) {
-                        this.ts.appendTask(point, cell);
+                        this.task_sys.appendTask(point, cell);
                         this.map.appendStation(point, (Station) cell);
                     } else if (cell instanceof Well) {
                         this.map.appendWell(point, (Well) cell);
@@ -145,7 +135,7 @@ public class SmartTanker extends Tanker {
     }
 
     private MemPoint exploreWorld() {
-        if (current_point.equals(this.explore_target_point)) {
+        if (this.status.current_point.equals(this.explore_target_point)) {
             this.explore_count++;
         }
 
@@ -158,7 +148,7 @@ public class SmartTanker extends Tanker {
         if (this.mode != EXPLORE &&
                 this.mode != REFUEL &&
                 this.mode != LOAD_WATER &&
-                this.current_point.calcDistance(this.explore_target_point) < VIEW_RANGE) {
+                this.status.current_point.calcDistance(this.explore_target_point) < VIEW_RANGE) {
             this.explore_count++;
             if (this.explore_count >= this.explore_target_point_list.length) {
                 this.explore_count = 0;
@@ -175,6 +165,7 @@ public class SmartTanker extends Tanker {
         if (!this.plan_list.isEmpty() ||
                 !this.current_task_pair.isNull()) {
             // have plan list
+            this.status.obeying = true;
             if (this.current_task_pair.isNull()) {
                 // no plan occupied, try to read a new one
                 this.current_task_pair = this.plan_list.poll();
@@ -182,7 +173,7 @@ public class SmartTanker extends Tanker {
 
             if (!this.current_task_pair.isNull()) {
                 // have plan occupied
-                if (!this.current_point.equals(this.current_task_pair.p)) {
+                if (!this.status.current_point.equals(this.current_task_pair.p)) {
                     // not at task point
                     this.target_point = (MemPoint) this.current_task_pair.p.clone();
                     command = DRIVE_TO_FACILITY;
@@ -191,28 +182,29 @@ public class SmartTanker extends Tanker {
                     if (this.current_task_pair.t == null) {
                         // not a task
                         this.current_task_pair = new TaskPair();
-                        if (this.current_cell instanceof FuelPump) {
+                        if (this.status.current_cell instanceof FuelPump) {
                             return REFUEL;
-                        } else if(this.current_cell instanceof Well) {
+                        } else if(this.status.current_cell instanceof Well) {
                             return LOAD_WATER;
                         }
                     } else {
                         // is a task
                         this.current_task = this.current_task_pair.t;
                         this.current_task_pair = new TaskPair();
-                        status.delivered_water += Math.min(this.current_task.getRequired(), status.water_level);
+                        this.status.delivered_water += Math.min(this.current_task.getRequired(), this.getWaterLevel());
                         return DELIVER_WATER;
                     }
                 }
             }
         } else {
             // empty plan list
-            if (this.current_cell instanceof FuelPump &&
-                    status.fuel_level < MAX_FUEL) {
+            this.status.obeying = false;
+            if (this.status.current_cell instanceof FuelPump &&
+                    this.getFuelLevel() < MAX_FUEL) {
                 // at fuel pump, gas not max
                 return REFUEL;
-            } else if (this.current_cell instanceof Well &&
-                    status.water_level < MAX_WATER) {
+            } else if (this.status.current_cell instanceof Well &&
+                    this.getWaterLevel() < MAX_WATER) {
                 // at water well, water not max
                 return LOAD_WATER;
             }
@@ -224,5 +216,15 @@ public class SmartTanker extends Tanker {
         }
 
         return command;
+    }
+
+    public Status getStatus() {
+        return this.status;
+    }
+
+    public void updatePlanList(Queue<TaskPair> plan_list) {
+        this.current_task_pair = new TaskPair();
+        this.plan_list.clear();
+        this.plan_list = new LinkedList<TaskPair>(plan_list);
     }
 }

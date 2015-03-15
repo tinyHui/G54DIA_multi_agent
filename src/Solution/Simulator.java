@@ -47,13 +47,14 @@ public class Simulator {
         //Create a fleet
         Fleet fleet = new Fleet();
         MemMap map = new MemMap();
-        TaskSys ts = new TaskSys();
-        Manager manager = new Manager(map);
+        TaskSys task_sys = new TaskSys();
+        Manager manager = new Manager(map, task_sys, FLEET_SIZE);
         Tanker t;
 
         for (int i=0; i<FLEET_SIZE; i++) {
-            t = new SmartTanker(map, ts, i);
+            t = new SmartTanker(i, map, task_sys, manager);
             fleet.add(t);
+            manager.appendTanker(t);
         }
 
         // Create a GUI window to show our tanker
@@ -65,6 +66,8 @@ public class Simulator {
             env.tick();
             // Update the GUI
             tv.tick(env);
+            // Update plan
+            manager.updatePlan();
 
             for (Tanker tank:fleet) {
                 // Get the current view of the tanker
@@ -88,8 +91,6 @@ public class Simulator {
             }
 
             try { Thread.sleep(DELAY);} catch (Exception e) { }
-
-
         }
     }
 

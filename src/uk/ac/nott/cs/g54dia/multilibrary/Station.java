@@ -26,6 +26,7 @@ public class Station extends DefaultCell {
 		if (this.task==null) {
 			if (Math.random()<NEW_TASK_PROBABILITY) {
 				this.task=new Task(this);
+                System.out.println("Generate 1 task");
 			}
 		}
 	}
