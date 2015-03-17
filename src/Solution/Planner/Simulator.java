@@ -31,7 +31,7 @@ public class Simulator {
     public Simulator(ArrayList<TaskPair> visit_list, SmartTanker tanker, MemMap map) {
         Status status = tanker.getStatus();
         this.visit_list = (ArrayList<TaskPair>) visit_list.clone();
-        this.current_point = (MemPoint) status.current_point.clone();
+        this.current_point = status.getCurrentPointCopy();
         this.water_level = tanker.getWaterLevel();
         this.fuel_level = tanker.getFuelLevel();
         this.completed_count = status.completed_count;

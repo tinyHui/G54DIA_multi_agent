@@ -146,7 +146,7 @@ public class TankerViewer extends JFrame implements ActionListener {
         fuel.setText(new String("" + tank.getFuelLevel()));
 		completed.setText(new String("" + tank.getCompletedCount()));
 		delivered.setText("" + tank.waterDelivered);
-		score.setText(customFormat("###,###,###,###,###,###", tank.getScore()));
+		score.setText(customFormat("###,###,###,###,###,###", fleet.getScore()));
 		for (int x = 0; x < SIZE; x++) {
 			for (int y = 0; y < SIZE; y++) {
 				Icon cur = iconfactory.getIconForCell(view[x][y]);
