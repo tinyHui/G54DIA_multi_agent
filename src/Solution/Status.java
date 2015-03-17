@@ -15,4 +15,8 @@ public class Status {
     public Cell current_cell;
     public MemPoint current_point;
     public boolean busy = false;
+
+    public MemPoint getCurrentPointCopy() {
+        return (MemPoint) current_point.clone();
+    }
 }
