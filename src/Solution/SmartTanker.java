@@ -13,8 +13,8 @@ import java.util.Queue;
  */
 
 public class SmartTanker extends Tanker {
-    static int MAX_RANGE = MAX_FUEL / 2;
-    final static int
+    private static int MAX_RANGE = MAX_FUEL / 2;
+    private final static int
             // action mode
             REFUEL = 0,
             LOAD_WATER = 1,
@@ -24,47 +24,45 @@ public class SmartTanker extends Tanker {
             DRIVE_TO_PUMP = 4,
             DRIVE_TO_FACILITY = 5;
 
-    int id;
-    int mode = EXPLORE;
+    private int id;
+    private int mode = EXPLORE;
 
-    Status status = new Status();
-    MemMap map;
-    TaskSys task_sys;
-    Manager manager;
-    Driver driver;
+    private Status status = new Status();
+    private MemMap map;
+    private TaskSys task_sys;
+    private Driver driver;
 
-    MemPoint[] explore_target_point_list = {new MemPoint(19, 25),
-                                            new MemPoint(38, 0),
-                                            new MemPoint(19, -25),
-                                            new MemPoint(-19, -25),
-                                            new MemPoint(-38, 0),
-                                            new MemPoint(-19, 25),
-                                            new MemPoint(-25, 19),
-                                            new MemPoint(0, 38),
-                                            new MemPoint(25, 19),
-                                            new MemPoint(25, -19),
-                                            new MemPoint(0, -38),
-                                            new MemPoint(-25, -19),
-                                            new MemPoint(38,38),
-                                            new MemPoint(0, 0),
-                                            new MemPoint(-38,-38),
-                                            new MemPoint(0, 0),
-                                            new MemPoint(38,-38),
-                                            new MemPoint(0, 0),
-                                            new MemPoint(-38,38),
-                                            new MemPoint(0, 0)};
-    Task current_task;
-    MemPoint target_point;
-    MemPoint explore_target_point;
-    int explore_count;
-    TaskPair current_task_pair = new TaskPair();
-    Queue<TaskPair> plan_list = new LinkedList<TaskPair>();
+    private MemPoint[] explore_target_point_list = {new MemPoint(19, 25),
+                                                    new MemPoint(38, 0),
+                                                    new MemPoint(19, -25),
+                                                    new MemPoint(-19, -25),
+                                                    new MemPoint(-38, 0),
+                                                    new MemPoint(-19, 25),
+                                                    new MemPoint(-25, 19),
+                                                    new MemPoint(0, 38),
+                                                    new MemPoint(25, 19),
+                                                    new MemPoint(25, -19),
+                                                    new MemPoint(0, -38),
+                                                    new MemPoint(-25, -19),
+                                                    new MemPoint(38,38),
+                                                    new MemPoint(0, 0),
+                                                    new MemPoint(-38,-38),
+                                                    new MemPoint(0, 0),
+                                                    new MemPoint(38,-38),
+                                                    new MemPoint(0, 0),
+                                                    new MemPoint(-38,38),
+                                                    new MemPoint(0, 0)};
+    private Task current_task;
+    private MemPoint target_point;
+    private MemPoint explore_target_point;
+    private int explore_count;
+    private TaskPair current_task_pair = new TaskPair();
+    public Queue<TaskPair> plan_list = new LinkedList<TaskPair>();
 
-    public SmartTanker(int id, MemMap map, TaskSys task_sys, Manager manager) {
+    public SmartTanker(int id, MemMap map, TaskSys task_sys) {
         this.id = id;
         this.map = map;
         this.task_sys = task_sys;
-        this.manager = manager;
         this.driver = new Driver(map, task_sys);
         this.explore_count = id * 3;
     }
@@ -165,7 +163,7 @@ public class SmartTanker extends Tanker {
         if (!this.plan_list.isEmpty() ||
                 !this.current_task_pair.isNull()) {
             // have plan list
-            this.status.obeying = true;
+            this.status.busy = true;
             if (this.current_task_pair.isNull()) {
                 // no plan occupied, try to read a new one
                 this.current_task_pair = this.plan_list.poll();
@@ -198,7 +196,7 @@ public class SmartTanker extends Tanker {
             }
         } else {
             // empty plan list
-            this.status.obeying = false;
+            this.status.busy = false;
             if (this.status.current_cell instanceof FuelPump &&
                     this.getFuelLevel() < MAX_FUEL) {
                 // at fuel pump, gas not max
@@ -224,7 +222,6 @@ public class SmartTanker extends Tanker {
 
     public void updatePlanList(Queue<TaskPair> plan_list) {
         this.current_task_pair = new TaskPair();
-        this.plan_list.clear();
-        this.plan_list = new LinkedList<TaskPair>(plan_list);
+        this.plan_list = plan_list;
     }
 }

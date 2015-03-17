@@ -76,6 +76,9 @@ public class Simulator {
             if (current_pair.t.getRequired() > this.water_level) {
                 // not enough water
                 MemPoint well = this.map.getMidWell(this.current_point, current_pair.p);
+                if (well == null) {
+                    continue;
+                }
                 // go well
                 this.visit_list_plan.add(new TaskPair(well, null));
                 // target p is well

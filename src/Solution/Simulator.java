@@ -52,7 +52,7 @@ public class Simulator {
         Tanker t;
 
         for (int i=0; i<FLEET_SIZE; i++) {
-            t = new SmartTanker(i, map, task_sys, manager);
+            t = new SmartTanker(i, map, task_sys);
             fleet.add(t);
             manager.appendTanker(t);
         }
