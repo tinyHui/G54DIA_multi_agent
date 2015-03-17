@@ -2,6 +2,7 @@ package uk.ac.nott.cs.g54dia.multilibrary;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.text.DecimalFormat;
 
 import javax.swing.*;
 
@@ -131,15 +132,21 @@ public class TankerViewer extends JFrame implements ActionListener {
 		this.tank = t;
 	}
 
+    static public String customFormat(String pattern, double value ) {
+        DecimalFormat myFormatter = new DecimalFormat(pattern);
+        String output = myFormatter.format(value);
+        return output;
+    }
+
 	public void tick(Environment env) {
 		Cell[][] view = env.getView(tank.getPosition(), Tanker.VIEW_RANGE);
 		pos.setText(tank.getPosition().toString());
 		tstep.setText(new String("" + env.getTimestep()));
 		water.setText(new String("" + tank.waterLevel));
-		fuel.setText(new String("" + tank.getFuelLevel()));
+        fuel.setText(new String("" + tank.getFuelLevel()));
 		completed.setText(new String("" + tank.getCompletedCount()));
 		delivered.setText("" + tank.waterDelivered);
-		score.setText("" + fleet.getScore());
+		score.setText(customFormat("###,###,###,###,###,###", fleet.getScore()));
 		for (int x = 0; x < SIZE; x++) {
 			for (int y = 0; y < SIZE; y++) {
 				Icon cur = iconfactory.getIconForCell(view[x][y]);
