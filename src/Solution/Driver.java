@@ -1,6 +1,5 @@
 package Solution;
 
-import Solution.Planner.PlanGenerator;
 import Solution.Planner.TaskPair;
 import uk.ac.nott.cs.g54dia.multilibrary.Action;
 import uk.ac.nott.cs.g54dia.multilibrary.MoveAction;

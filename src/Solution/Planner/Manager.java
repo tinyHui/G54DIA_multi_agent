@@ -10,7 +10,7 @@ import java.util.*;
  * Created by JasonChen on 3/12/15.
  */
 public class Manager {
-    final static int RETRY_MAX = 10;
+    final static int RETRY_MAX = 50;
     MemMap map;
     TaskSys task_sys;
     int tanker_num;
