@@ -112,21 +112,12 @@ public class Manager {
         }
 
         for (TaskPair current_pair : this.station_list) {
-            int distance = 0;
-            int min_distance = 100;
-            int min_id = 0;
-            for (int tanker_id = 0; tanker_id < this.tanker_num; tanker_id++) {
-                if (tanker_station_count[tanker_id] > tanker_station_limit ||
-                        tanker_list.get(tanker_id).getStatus().busy)
-                    continue;
-                distance = current_pair.p.calcDistance(this.tanker_list.get(tanker_id).getStatus().getCurrentPointCopy());
-                if (distance < min_distance) {
-                    min_distance = distance;
-                    min_id = tanker_id;
-                }
-            }
-            tanker_station_count[min_id] += 1;
-            station_visit_lists.get(min_id).add(current_pair);
+            int tanker_id = 0;
+            do {
+                tanker_id = this.rand.nextInt(this.tanker_num);
+            } while (tanker_station_count[tanker_id] > tanker_station_limit);
+            tanker_station_count[tanker_id] += 1;
+            station_visit_lists.get(tanker_id).add(current_pair);
         }
 
         return station_visit_lists;
