@@ -10,7 +10,7 @@ import java.util.*;
  * Created by JasonChen on 3/12/15.
  */
 public class Manager {
-    final static int RETRY_MAX = 50;
+    final static int RETRY_MAX = 10;
     MemMap map;
     TaskSys task_sys;
     int tanker_num;
@@ -51,7 +51,6 @@ public class Manager {
             for (int i = 0; i < this.tanker_num; i++) {
                 best_visit_lists.add(new ArrayList<TaskPair>());
             }
-
 
             // start plan
             for (int retry_time = 0; retry_time < RETRY_MAX; retry_time++) {
